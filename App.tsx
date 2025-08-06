@@ -13,24 +13,25 @@ function App() {
     <div
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #ffe8bc 0%, #ffa07a 100%)",
-        fontFamily: "'Inter', 'sans-serif'",
+        background: "linear-gradient(135deg, #ffe8bc 0%, #ff9a8b 100%)",
+        fontFamily: "'Inter', sans-serif",
+        padding: "2rem",
       }}
       className="flex flex-col items-center justify-center"
     >
       <h1
         style={{
-          fontFamily: "'Luckiest Guy', cursive, 'Playfair Display', serif",
+          fontFamily: "'Luckiest Guy', cursive",
           fontSize: "3rem",
-          margin: "2rem 0 1.5rem 0",
+          marginBottom: "2rem",
           letterSpacing: "2px",
-          background: "linear-gradient(135deg, #e06464 20%, #f7b86b 100%)",
+          background: "linear-gradient(135deg, #f43f5e 20%, #fbbf24 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
+          textAlign: "center",
         }}
-        className="main-title"
       >
-        BOMB BOX TRAP GAME
+        🎯 BOMB BOX TRAP 🎯
       </h1>
       {phase === 'setup' && <PlayerSetup />}
       {(phase === 'trap_placement' || phase === 'gameplay' || phase === 'game_over') && (
