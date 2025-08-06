@@ -1,40 +1,146 @@
-import React from 'react';
-import { useTrapGame } from '../lib/stores/useTrapGame';
-import { Button } from './ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
-export const GameUI: React.FC = () => {
-  const { phase, winner, playerNames, message, resetGame } = useTrapGame();
+export type GamePhase = "setup" | "trap_placement" | "gameplay" | "game_over";
+export type Player = 1 | 2;
+export type BoxState = "hidden" | "safe" | "trap";
 
-  if (phase !== 'game_over') return null;
+interface Box {
+  id: number;
+  state: BoxState;
+  revealed: boolean;
+  trapOwner?: Player;
+}
 
-  return (
-    <div className="fixed inset-0 bg-pink-900/70 backdrop-blur-md flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-lg bg-white/98 backdrop-blur-md border-3 border-pink-300 shadow-2xl">
-        <CardHeader className="text-center pb-10">
-          <CardTitle className="text-5xl font-black bg-gradient-to-r from-pink-700 to-rose-900 bg-clip-text text-transparent tracking-tight uppercase">
-            GAME OVER!
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center space-y-10">
-          <div className="p-10 bg-gradient-to-br from-pink-50 to-white rounded-2xl border-2 border-pink-200">
-            <div className="text-8xl mb-8">🎉</div>
-            <h2 className="text-4xl font-black text-pink-900 mb-4 tracking-tight uppercase">
-              {winner && playerNames[winner].toUpperCase()} WINS!
-            </h2>
-            <p className="text-pink-700 font-bold text-xl uppercase tracking-wide">
-              {message.toUpperCase()}
-            </p>
-          </div>
-          
-          <Button 
-            onClick={resetGame}
-            className="w-full bg-gradient-to-r from-pink-600 to-rose-800 hover:from-pink-700 hover:to-rose-900 text-white font-black py-6 text-xl transition-all duration-300 transform hover:scale-105 rounded-xl shadow-2xl border-2 border-pink-300 uppercase tracking-wide"
-          >
-            PLAY AGAIN
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
+interface GameState {
+  phase: GamePhase;
+  currentPlayer: Player;
+  playerNames: { [key in Player]: string };
+  grid: Box[];
+  trapsPlaced: { [key in Player]: number | null };
+  currentTrapPlacer: Player;
+  winner: Player | null;
+  message: string;
+  setPlayerName: (player: Player, name: string) => void;
+  startGame: () => void;
+  placeTrap: (boxIndex: number) => void;
+  clickBox: (boxIndex: number) => void;
+  resetGame: () => void;
+}
+
+const initializeGrid = (): Box[] =>
+  Array.from({ length: 25 }, (_, index) => ({
+    id: index,
+    state: "hidden",
+    revealed: false,
+  }));
+
+export const useTrapGame = create<GameState>()(
+  subscribeWithSelector((set, get) => ({
+    phase: "setup",
+    currentPlayer: 1,
+    playerNames: { 1: "Player 1", 2: "Player 2" },
+    grid: initializeGrid(),
+    trapsPlaced: { 1: null, 2: null },
+    currentTrapPlacer: 1,
+    winner: null,
+    message: "Enter player names to begin",
+
+    setPlayerName: (player, name) => {
+      set((state) => ({
+        playerNames: {
+          ...state.playerNames,
+          [player]: name || `Player ${player}`,
+        },
+      }));
+    },
+
+    startGame: () => {
+      set({
+        phase: "trap_placement",
+        grid: initializeGrid(),
+        trapsPlaced: { 1: null, 2: null },
+        currentTrapPlacer: 1,
+        message: `${get().playerNames[1]}, place your trap!`,
+        winner: null,
+      });
+    },
+
+    placeTrap: (boxIndex) => {
+      const state = get();
+      if (
+        state.phase !== "trap_placement" ||
+        state.trapsPlaced[state.currentTrapPlacer] !== null
+      ) return;
+
+      const updatedGrid = [...state.grid];
+      updatedGrid[boxIndex] = {
+        ...updatedGrid[boxIndex],
+        state: "trap",
+        trapOwner: state.currentTrapPlacer,
+      };
+      const updatedTrapsPlaced = {
+        ...state.trapsPlaced,
+        [state.currentTrapPlacer]: boxIndex,
+      };
+
+      if (state.currentTrapPlacer === 1) {
+        set({
+          grid: updatedGrid,
+          trapsPlaced: updatedTrapsPlaced,
+          currentTrapPlacer: 2,
+          message: `${state.playerNames[2]}, place your trap!`,
+        });
+      } else {
+        set({
+          phase: "gameplay",
+          grid: updatedGrid,
+          trapsPlaced: updatedTrapsPlaced,
+          currentPlayer: 1,
+          message: `${state.playerNames[1]}, make your move!`,
+        });
+      }
+    },
+
+    clickBox: (boxIndex) => {
+      const state = get();
+      if (state.phase !== "gameplay" || state.grid[boxIndex].revealed) return;
+
+      const updatedGrid = [...state.grid];
+      const clickedBox = updatedGrid[boxIndex];
+      clickedBox.revealed = true;
+
+      if (clickedBox.state === "trap") {
+        // Player who clicks a trap loses
+        const loser = state.currentPlayer;
+        const winner = loser === 1 ? 2 : 1;
+        set({
+          grid: updatedGrid,
+          phase: "game_over",
+          winner,
+          message: `${state.playerNames[winner]} wins! ${state.playerNames[loser]} hit a trap!`,
+        });
+      } else {
+        clickedBox.state = "safe";
+        const nextPlayer = state.currentPlayer === 1 ? 2 : 1;
+        set({
+          grid: updatedGrid,
+          currentPlayer: nextPlayer,
+          message: `${state.playerNames[nextPlayer]}, make your move!`,
+        });
+      }
+    },
+
+    resetGame: () => {
+      set({
+        phase: "setup",
+        grid: initializeGrid(),
+        trapsPlaced: { 1: null, 2: null },
+        currentTrapPlacer: 1,
+        currentPlayer: 1,
+        winner: null,
+        message: "Enter player names to begin",
+      });
+    },
+  }))
+);
