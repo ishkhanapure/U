@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useTrapGame } from '../lib/stores/useTrapGame';
+import { useTrapGame } from './useTrapGame';
 
 export const PlayerSetup: React.FC = () => {
   const { playerNames, setPlayerName, startGame } = useTrapGame();
@@ -19,54 +19,52 @@ export const PlayerSetup: React.FC = () => {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.7)",
-        borderRadius: "20px",
+        background: "rgba(255,255,255,0.8)",
+        borderRadius: "25px",
         padding: "2rem 1.5rem",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.11)",
-        minWidth: "260px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+        minWidth: "280px",
         display: "flex",
         flexDirection: "column",
         gap: "2rem",
         fontFamily: "'Inter', sans-serif",
-        alignItems: "center"
+        alignItems: "center",
       }}
     >
       <div
         style={{
           fontFamily: "'Luckiest Guy', cursive",
           fontSize: "2rem",
-          color: "#e27661",
+          color: "#e06464",
         }}
       >
-        ENTER YOUR NAMES TO BEGIN
+        ENTER PLAYER NAMES
       </div>
-      <label
-        style={{ fontWeight: 700, fontFamily: "'Luckiest Guy', cursive", color: "#ff6e4e" }}>
+      <label style={{ fontWeight: 700, fontFamily: "'Luckiest Guy'", color: "#ff6e4e" }}>
         Player 1
         <input
           style={{
             border: "2px solid #e6886a",
-            padding: "0.6rem 1.1rem",
-            borderRadius: "13px",
+            padding: "0.6rem 1rem",
+            borderRadius: "12px",
             fontSize: "1.2rem",
             marginLeft: "1rem",
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif",
           }}
           value={playerNames[1]}
           onChange={e => setPlayerName(1, e.target.value)}
         />
       </label>
-      <label
-        style={{ fontWeight: 700, fontFamily: "'Luckiest Guy', cursive", color: "#6e82ff" }}>
+      <label style={{ fontWeight: 700, fontFamily: "'Luckiest Guy'", color: "#4e63ff" }}>
         Player 2
         <input
           style={{
             border: "2px solid #7182e0",
-            padding: "0.6rem 1.1rem",
-            borderRadius: "13px",
+            padding: "0.6rem 1rem",
+            borderRadius: "12px",
             fontSize: "1.2rem",
             marginLeft: "1rem",
-            fontFamily: "'Inter', sans-serif"
+            fontFamily: "'Inter', sans-serif",
           }}
           value={playerNames[2]}
           onChange={e => setPlayerName(2, e.target.value)}
