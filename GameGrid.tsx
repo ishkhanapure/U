@@ -1,8 +1,16 @@
 import React from 'react';
-import { useTrapGame } from '../lib/stores/useTrapGame';
+import { useTrapGame } from './useTrapGame';
 
 export const GameGrid: React.FC = () => {
-  const { grid, phase, placeTrap, clickBox, currentTrapPlacer, currentPlayer, playerNames } = useTrapGame();
+  const {
+    grid,
+    phase,
+    placeTrap,
+    clickBox,
+    currentTrapPlacer,
+    currentPlayer,
+    playerNames,
+  } = useTrapGame();
 
   const handleBoxClick = (index: number) => {
     if (phase === 'trap_placement') {
@@ -13,70 +21,66 @@ export const GameGrid: React.FC = () => {
   };
 
   const getBoxStyle = (box: typeof grid[0], index: number) => {
-    const baseStyle =
-      "aspect-square rounded-xl border-4 transition-all duration-300 transform hover:scale-105 cursor-pointer flex items-center justify-center font-black text-3xl shadow-xl backdrop-blur-sm m-1 select-none";
+    const base =
+      "aspect-square rounded-xl border-4 transition-all duration-300 transform hover:scale-105 cursor-pointer flex items-center justify-center font-black text-3xl shadow-xl m-1 select-none";
+
     if (phase === 'trap_placement') {
-      const isMyTrap = currentTrapPlacer === 1 ? grid[index].trapOwner === 1 : grid[index].trapOwner === 2;
-      const isOtherTrap = currentTrapPlacer === 1 ? grid[index].trapOwner === 2 : grid[index].trapOwner === 1;
-      if (isMyTrap) {
-        return baseStyle + " bg-gradient-to-br from-pink-600 to-rose-800 border-pink-900 text-white ring-4 ring-pink-400/50 shadow-2xl";
-      } else if (isOtherTrap) {
-        return baseStyle + " bg-gradient-to-br from-gray-200 to-gray-300 border-gray-400 hover:scale-100 cursor-not-allowed opacity-50";
-      } else {
-        return baseStyle + " bg-gradient-to-br from-white to-pink-50 border-pink-200 hover:border-pink-600 hover:bg-pink-100 hover:ring-4 hover:ring-pink-300/50";
-      }
+      const isMyTrap = box.trapOwner === currentTrapPlacer;
+      const isOtherTrap = box.trapOwner && box.trapOwner !== currentTrapPlacer;
+      if (isMyTrap) return base + " bg-rose-700 border-rose-900 text-white ring-4 ring-rose-300";
+      if (isOtherTrap) return base + " bg-gray-200 border-gray-400 opacity-50 cursor-not-allowed hover:scale-100";
+      return base + " bg-pink-50 border-pink-300 hover:bg-pink-200 ring-2 ring-pink-300/50";
     }
+
     if (box.revealed) {
-      if (box.state === 'safe') {
-        return baseStyle + " bg-gradient-to-br from-emerald-400 to-green-500 border-emerald-600 text-white hover:scale-100 ring-4 ring-emerald-300/50 shadow-2xl";
-      }
-      if (box.state === 'trap') {
-        return baseStyle + " bg-gradient-to-br from-red-500 to-red-700 border-red-800 text-white hover:scale-100 ring-4 ring-red-400/50 shadow-2xl";
-      }
+      if (box.state === 'trap')
+        return base + " bg-red-600 border-red-800 text-white ring-4 ring-red-400/50";
+      if (box.state === 'safe')
+        return base + " bg-green-500 border-green-700 text-white ring-4 ring-green-300/50";
     }
-    return baseStyle + " bg-gradient-to-br from-white to-pink-50 border-pink-200 hover:border-pink-600 hover:bg-pink-100 hover:ring-4 hover:ring-pink-300/50";
+
+    return base + " bg-white border-gray-300 hover:bg-yellow-100";
   };
 
   const getBoxContent = (box: typeof grid[0], index: number) => {
-    // Show player's own trap during gameplay (unrevealed)
-    if (
-      phase === 'gameplay' &&
-      !box.revealed &&
-      box.state === 'trap' &&
-      ((currentPlayer === 1 && box.trapOwner === 1) ||
-        (currentPlayer === 2 && box.trapOwner === 2))
-    ) {
+    if (phase === 'trap_placement' && box.trapOwner === currentTrapPlacer)
       return '💣';
+
+    if (phase === 'gameplay') {
+      if (
+        box.state === 'trap' &&
+        !box.revealed &&
+        box.trapOwner === currentPlayer
+      ) return '💣';
     }
-    // Show bomb during trap placement
-    if (phase === 'trap_placement') {
-      const isMyTrap = currentTrapPlacer === 1 ? grid[index].trapOwner === 1 : grid[index].trapOwner === 2;
-      if (isMyTrap) return '💣';
-    }
-    // Show if revealed
+
     if (box.revealed) {
-      if (box.state === 'safe') return '✓';
       if (box.state === 'trap') return '💥';
+      if (box.state === 'safe') return '✓';
     }
+
     return '';
   };
 
   return (
-    <div style={{
-      width: "min(360px, 98vw)",
-      margin: "1rem auto",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center"
-    }}>
-      <div style={{
-        fontFamily: "'Luckiest Guy', cursive",
-        fontSize: "1.35rem",
-        marginBottom: "0.8rem",
-        letterSpacing: "0.5px",
-        color: "#be3881",
-        textShadow: "2px 2px 8px #ffb3c6",
-      }}>
+    <div
+      style={{
+        width: "min(360px, 90vw)",
+        margin: "1.5rem auto",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: "'Luckiest Guy', cursive",
+          fontSize: "1.5rem",
+          marginBottom: "1rem",
+          color: "#8b1d5e",
+          textShadow: "1px 1px 4px #ffbdd8",
+        }}
+      >
         {phase === 'trap_placement'
           ? `${playerNames[currentTrapPlacer].toUpperCase()}, PLACE YOUR TRAP`
           : phase === 'gameplay'
@@ -87,31 +91,26 @@ export const GameGrid: React.FC = () => {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(5, 1fr)",
-          gap: "5px",
+          gap: "6px",
         }}
       >
         {grid.map((box, i) => (
           <button
+            key={i}
             onClick={() => handleBoxClick(i)}
             className={getBoxStyle(box, i)}
-            key={i}
-            style={{
-              fontFamily: "'Luckiest Guy', cursive",
-              height: "54px",
-              minWidth: "54px",
-              fontSize: "2rem",
-              outline: "none"
-            }}
             disabled={
               phase === 'trap_placement'
-                ? (currentTrapPlacer === 1
-                   ? grid[i].trapOwner === 1
-                   : grid[i].trapOwner === 2) ||
-                  (currentTrapPlacer === 1
-                    ? grid[i].trapOwner === 2
-                    : grid[i].trapOwner === 1)
+                ? box.trapOwner !== undefined
                 : box.revealed || phase === 'game_over'
             }
+            style={{
+              fontFamily: "'Luckiest Guy', cursive",
+              height: "56px",
+              minWidth: "56px",
+              fontSize: "2rem",
+              outline: "none",
+            }}
           >
             {getBoxContent(box, i)}
           </button>
@@ -122,13 +121,13 @@ export const GameGrid: React.FC = () => {
           width: "100%",
           display: "flex",
           justifyContent: "space-between",
-          marginTop: "0.8rem",
+          marginTop: "1rem",
           fontFamily: "'Luckiest Guy', cursive",
-          fontSize: "1.1rem"
+          fontSize: "1.1rem",
         }}
       >
-        <span style={{ color: "#9346ff" }}>PLAYER 1</span>
-        <span style={{ color: "#f76868" }}>PLAYER 2</span>
+        <span style={{ color: "#4e63ff" }}>PLAYER 1</span>
+        <span style={{ color: "#f76786" }}>PLAYER 2</span>
       </div>
     </div>
   );
