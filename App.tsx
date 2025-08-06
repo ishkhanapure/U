@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTrapGame } from './useTrapGame'; // ✅ fixed path
+import { useTrapGame } from './useTrapGame';
 import { PlayerSetup } from './PlayerSetup';
 import { GameGrid } from './GameGrid';
 import { GameUI } from './GameUI';
